@@ -10,14 +10,14 @@ typedef enum {
     NODE_DESTINATION
 } NodeType;
 
-typedef struct {
+typedef struct NodeInfo {
     char* id;
     char* address;
-    uint16_t port;
+    uint16_t        port;
     struct NodeInfo* parent;
     struct NodeInfo** children;
-    size_t child_count;
-    NodeType type;
+    size_t          child_count;
+    NodeType        type;
 } NodeInfo;
 
 NodeInfo* node_load_all(const char* path, size_t* outCount);

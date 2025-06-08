@@ -129,12 +129,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="config_loader.c" />
+    <ClCompile Include="cp_launcher.c" />
     <ClCompile Include="data_generator.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="network_sender.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config_loader.h" />
+    <ClInclude Include="cp_launcher.h" />
     <ClInclude Include="data_generator.h" />
     <ClInclude Include="network_sender.h" />
     <ClInclude Include="resource.h" />
@@ -143,9 +145,6 @@
     <ProjectReference Include="..\Common\Common.vcxproj">
       <Project>{533d95e8-f94b-46e3-828b-5ecdb322d596}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="nodes.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

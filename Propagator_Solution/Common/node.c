@@ -78,9 +78,9 @@ NodeInfo* node_load_all(const char* path, size_t* outCount) {
     }
 
     for (size_t i = 0; i < cnt; i++) {
-        if (!arr[i].parent)        arr[i].type = NODE_ROOT;
+        if (!arr[i].parent)              arr[i].type = NODE_ROOT;
         else if (arr[i].child_count > 0) arr[i].type = NODE_CENTRAL;
-        else                        arr[i].type = NODE_DESTINATION;
+        else                             arr[i].type = NODE_DESTINATION;
     }
 
     for (size_t i = 0; i < cnt; i++) {

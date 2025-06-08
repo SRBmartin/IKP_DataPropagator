@@ -15,54 +15,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="queue.h">
+    <ClInclude Include="cp_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hashmap.h">
+    <ClInclude Include="cp_listener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Warning.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="node.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tsqueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="propagator_client.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils.h">
+    <ClInclude Include="cp_thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="queue.c">
+    <ClCompile Include="cp_context.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hashmap.c">
+    <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="warning.c">
+    <ClCompile Include="cp_listener.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="node.c">
+    <ClCompile Include="cp_thread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tsqueue.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="propagator_client.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="utils.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CopyFileToFolders Include="nodes.csv">
-      <Filter>Resource Files</Filter>
-    </CopyFileToFolders>
   </ItemGroup>
 </Project>
