@@ -1,0 +1,51 @@
+#include <stdlib.h>
+#include <time.h>
+#include <windows.h>
+#include <stdint.h>
+#include "data_generator.h"
+#include "../Common/Warning.h"
+
+void* data_generator_thread(void* arg) {
+    GeneratorArgs* a = (GeneratorArgs*)arg;
+    size_t total = a->node_count;
+    NodeInfo* all = a->nodes;
+    size_t dest_count = 0;
+
+    for (size_t i = 0; i < total; i++) {
+        if (all[i].type == NODE_DESTINATION) dest_count++;
+    }
+
+    if (dest_count == 0) {
+        return NULL;
+    }
+
+    NodeInfo** dests = malloc(dest_count * sizeof(NodeInfo*));
+    size_t di = 0;
+    for (size_t i = 0; i < total; i++) {
+        if (all[i].type == NODE_DESTINATION) {
+            dests[di++] = &all[i];
+        }
+    }
+
+    srand((unsigned)time(NULL));
+
+    while (1) {
+        size_t j = rand() % dest_count;
+        NodeInfo* n = dests[j];
+
+        Warning* w = warning_create(
+            n->id,
+            (WarningType)(rand() % 4),
+            (double)(rand() % 100),
+            (uint64_t)time(NULL),
+            n->id
+        );
+
+        tsqueue_enqueue(a->queue, w);
+
+        Sleep((rand() % 1000) + 500);
+    }
+
+    free(dests);
+    return NULL;
+}
