@@ -22,14 +22,18 @@ static void collect_subtree(HashMap* m, NodeInfo* n) {
     }
 }
 
-CPContext* cp_context_create(const char* nodes_csv, const char* root_id) {
+CPContext* cp_context_create(const char* nodes_csv,
+    const char* root_id)
+{
     size_t total;
     NodeInfo* all = node_load_all(nodes_csv, &total);
     if (!all) return NULL;
 
-    HashMap* allmap = hashmap_create(
-        total, hash_string, eq_string, free, NULL
-    );
+    HashMap* allmap = hashmap_create(total,
+        hash_string,
+        eq_string,
+        free,
+        NULL);
     for (size_t i = 0; i < total; i++) {
         hashmap_put(allmap, _strdup(all[i].id), &all[i]);
     }
@@ -41,26 +45,24 @@ CPContext* cp_context_create(const char* nodes_csv, const char* root_id) {
         return NULL;
     }
 
-    HashMap* submap = hashmap_create(
-        total, hash_string, eq_string, free, NULL
-    );
+    HashMap* submap = hashmap_create(total,
+        hash_string,
+        eq_string,
+        free,
+        NULL);
     collect_subtree(submap, me);
 
-    size_t cc = me->child_count;
-    NodeInfo** kids = malloc(cc * sizeof(NodeInfo*));
-    for (size_t i = 0; i < cc; i++) {
-        kids[i] = me->children[i];
-    }
-
-    hashmap_destroy(allmap);
-
-    CPContext* ctx = malloc(sizeof(CPContext));
+    CPContext* ctx = malloc(sizeof(*ctx));
     ctx->map = submap;
     ctx->me = me;
-    ctx->children = kids;
-    ctx->child_count = cc;
+    ctx->child_count = me->child_count;
+    ctx->children = malloc(ctx->child_count * sizeof(*ctx->children));
+    for (size_t i = 0; i < ctx->child_count; i++)
+        ctx->children[i] = me->children[i];
     ctx->all_nodes = all;
     ctx->all_count = total;
+
+    hashmap_destroy(allmap);
     return ctx;
 }
 

@@ -47,6 +47,7 @@ void* data_generator_thread(void* arg) {
         char* desc = warning_to_string(w);
         if (desc) {
 			printf("[DS]: Enqueued warning: %s\n", desc);
+            free(desc);
         }
 
         Sleep((rand() % 1000) + 500);
