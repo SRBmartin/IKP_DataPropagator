@@ -1,4 +1,4 @@
-#include "cp_context.h"
+﻿#include "cp_context.h"
 #include "../Common/node.h"
 #include "../Common/hashmap.h"
 #include <stdlib.h>
@@ -12,7 +12,7 @@ static size_t hash_string(const void* k) {
 }
 
 static bool eq_string(const void* a, const void* b) {
-    return strcmp(a, b) == 0;
+    return strcmp((const char*)a, (const char*)b) == 0;
 }
 
 static void collect_subtree(HashMap* m, NodeInfo* n) {
@@ -22,17 +22,14 @@ static void collect_subtree(HashMap* m, NodeInfo* n) {
     }
 }
 
-CPContext* cp_context_create(const char* nodes_csv, const char* root_id)
-{
+CPContext* cp_context_create(const char* nodes_csv, const char* root_id) {
     size_t total;
     NodeInfo* all = node_load_all(nodes_csv, &total);
     if (!all) return NULL;
 
-    HashMap* allmap = hashmap_create(total,
-        hash_string,
-        eq_string,
-        free,
-        NULL);
+    HashMap* allmap = hashmap_create(
+        total, hash_string, eq_string, free, NULL
+    );
     for (size_t i = 0; i < total; i++) {
         hashmap_put(allmap, _strdup(all[i].id), &all[i]);
     }
@@ -44,11 +41,9 @@ CPContext* cp_context_create(const char* nodes_csv, const char* root_id)
         return NULL;
     }
 
-    HashMap* submap = hashmap_create(total,
-        hash_string,
-        eq_string,
-        free,
-        NULL);
+    HashMap* submap = hashmap_create(
+        total, hash_string, eq_string, free, NULL
+    );
     collect_subtree(submap, me);
 
     size_t cc = me->child_count;
@@ -58,13 +53,14 @@ CPContext* cp_context_create(const char* nodes_csv, const char* root_id)
     }
 
     hashmap_destroy(allmap);
-    node_info_destroy_all(all, total);
 
     CPContext* ctx = malloc(sizeof(CPContext));
     ctx->map = submap;
     ctx->me = me;
     ctx->children = kids;
     ctx->child_count = cc;
+    ctx->all_nodes = all;
+    ctx->all_count = total;
     return ctx;
 }
 
@@ -72,5 +68,6 @@ void cp_context_destroy(CPContext* ctx) {
     if (!ctx) return;
     hashmap_destroy(ctx->map);
     free(ctx->children);
+    node_info_destroy_all(ctx->all_nodes, ctx->all_count);
     free(ctx);
 }

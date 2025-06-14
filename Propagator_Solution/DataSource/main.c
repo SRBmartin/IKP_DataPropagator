@@ -1,3 +1,7 @@
+#define WIN32_LEAN_AND_MEAN
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,8 +23,11 @@ static DWORD WINAPI send_thread_fn(LPVOID arg) {
 }
 
 int main(void) {
+    WSADATA wsa;
+    WSAStartup(MAKEWORD(2, 2), &wsa);
+
     NodeInfo* nodes;
-    size_t    nodeCount;
+    size_t nodeCount;
     NodeInfo* root = load_root("../Common/nodes.csv", &nodes, &nodeCount);
     if (!root) return EXIT_FAILURE;
 
@@ -29,11 +36,10 @@ int main(void) {
     if (!procs) return EXIT_FAILURE;
 
     initializeConsoleSettings();
-    propagator_client_init(root->address, root->port);
     TSQueue* globalQ = tsqueue_create(0, (void(*)(void*))warning_destroy);
 
     GeneratorArgs genArgs = { globalQ, nodes, nodeCount };
-    SenderArgs   sendArgs = { globalQ };
+    SenderArgs   sendArgs = { globalQ, nodes, nodeCount };
 
     HANDLE hGen = CreateThread(NULL, 0, gen_thread_fn, &genArgs, 0, NULL);
     HANDLE hSend = CreateThread(NULL, 0, send_thread_fn, &sendArgs, 0, NULL);
@@ -43,7 +49,8 @@ int main(void) {
 
     cp_wait_and_cleanup(procs, launchCount);
     tsqueue_destroy(globalQ);
-    propagator_client_shutdown();
     node_info_destroy_all(nodes, nodeCount);
+
+    WSACleanup();
     return 0;
 }

@@ -2,6 +2,7 @@
 #define PROPAGATOR_CLIENT_H
 
 #include "warning.h"
+#include <stdint.h>
 #include <stdbool.h>
 
 bool propagator_client_init(const char* address, uint16_t port);
