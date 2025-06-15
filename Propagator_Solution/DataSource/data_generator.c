@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
@@ -43,7 +44,13 @@ void* data_generator_thread(void* arg) {
 
         tsqueue_enqueue(a->queue, w);
 
-        Sleep((rand() % 1000) + 500);
+        char* desc = warning_to_string(w);
+        if (desc) {
+			printf("[DS]: Enqueued warning: %s\n", desc);
+            free(desc);
+        }
+
+        Sleep((rand() % 500) + 1000);
     }
 
     free(dests);

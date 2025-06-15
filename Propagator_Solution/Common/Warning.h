@@ -25,5 +25,6 @@ Warning* warning_create(const char* city,
     const char* dest_node);
 
 void warning_destroy(Warning* w);
+char* warning_to_string(const Warning* w);
 
 #endif

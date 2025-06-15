@@ -27,6 +27,9 @@
     <ClCompile Include="network_sender.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cp_launcher.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config_loader.h">
@@ -41,10 +44,8 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="nodes.csv">
-      <Filter>Resource Files</Filter>
-    </None>
+    <ClInclude Include="cp_launcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
