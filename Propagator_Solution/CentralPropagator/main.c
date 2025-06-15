@@ -20,7 +20,7 @@
 
 int main(int argc, char** argv) {
     WSADATA wsa;
-    if (!WSAStartup(MAKEWORD(2, 2), &wsa)) {
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         fprintf(stderr, "Startup of WSA service has failed. Exiting...");
         return EXIT_FAILURE;
     }

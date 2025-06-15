@@ -135,7 +135,7 @@
     <ClInclude Include="queue.h" />
     <ClInclude Include="tsqueue.h" />
     <ClInclude Include="utils.h" />
-    <ClInclude Include="Warning.h" />
+    <ClInclude Include="warning.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hashmap.c" />

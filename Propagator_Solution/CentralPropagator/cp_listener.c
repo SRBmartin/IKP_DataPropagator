@@ -3,24 +3,14 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
-#pragma comment(lib, "Ws2_32.lib")
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "cp_listener.h"
-#include "../Common/Warning.h"
+#include "../Common/warning.h"
 #include "../Common/utils.h"
-
-static inline uint64_t network_to_host64(uint64_t x) {
-    uint32_t hi_net = (uint32_t)(x);
-    uint32_t lo_net = (uint32_t)(x >> 32);
-    uint32_t hi = ntohl(hi_net);
-    uint32_t lo = ntohl(lo_net);
-
-    return ((uint64_t)hi << 32) | lo;
-}
 
 static int recv_all(SOCKET s, char* buf, int n) {
     int total = 0, r;

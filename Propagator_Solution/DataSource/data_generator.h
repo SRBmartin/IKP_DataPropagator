@@ -4,7 +4,12 @@
 #include "../Common/tsqueue.h"
 #include "../Common/node.h"
 
-typedef struct { TSQueue* queue; NodeInfo* nodes; size_t node_count; } GeneratorArgs;
+typedef struct {
+	TSQueue* queue;
+	NodeInfo* nodes;
+	size_t node_count;
+	HANDLE stopEvent;
+} GeneratorArgs;
 
 void* data_generator_thread(void* arg);
 

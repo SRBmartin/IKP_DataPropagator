@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <stdint.h>
 #include "data_generator.h"
-#include "../Common/Warning.h"
+#include "../Common/warning.h"
 
 void* data_generator_thread(void* arg) {
     GeneratorArgs* a = (GeneratorArgs*)arg;
@@ -30,7 +30,7 @@ void* data_generator_thread(void* arg) {
 
     srand((unsigned)time(NULL));
 
-    while (1) {
+    while (WaitForSingleObject(a->stopEvent, 0) == WAIT_TIMEOUT) {
         size_t j = rand() % dest_count;
         NodeInfo* n = dests[j];
 
@@ -52,6 +52,8 @@ void* data_generator_thread(void* arg) {
 
         Sleep((rand() % 500) + 1000);
     }
+
+    tsqueue_enqueue(a->queue, NULL); // We send NULL sentinel to break the loop and let the cleanup do it's job
 
     free(dests);
     return NULL;

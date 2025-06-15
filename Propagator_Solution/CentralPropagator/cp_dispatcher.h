@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include "cp_context.h"
 #include "thread_pool.h"
-#include "../Common/Warning.h"
+#include "../Common/warning.h"
 
 typedef struct CPDispatcher {
     ThreadPool* pool;
