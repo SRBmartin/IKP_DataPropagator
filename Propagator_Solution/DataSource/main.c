@@ -60,8 +60,12 @@ static void await_cp_and_dd_propagation_objects(int cpCount, int ddCount, PROCES
 }
 
 int main(void) {
+    getchar();
     WSADATA wsa;
-    WSAStartup(MAKEWORD(2, 2), &wsa);
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        printf("Failed to start WSA services. Exiting...");
+        return EXIT_FAILURE;
+    }
 
     NodeInfo* nodes;
     size_t nodeCount;
@@ -87,21 +91,40 @@ int main(void) {
     initializeConsoleSettings();
     TSQueue* globalQ = tsqueue_create(0, (void(*)(void*))warning_destroy);
 
+    HANDLE hStop = CreateEvent(NULL, TRUE, FALSE, NULL);
+    if (!hStop) {
+        fprintf(stderr, "Failed to create a stop event. Exiting...");
+        return EXIT_FAILURE;
+    }
+
     GeneratorArgs genArgs = { globalQ, nodes, nodeCount };
     SenderArgs   sendArgs = { globalQ, nodes, nodeCount };
+    genArgs.stopEvent = hStop;
+    sendArgs.stopEvent = hStop;
 
     HANDLE hGen = CreateThread(NULL, 0, gen_thread_fn, &genArgs, 0, NULL);
     HANDLE hSend = CreateThread(NULL, 0, send_thread_fn, &sendArgs, 0, NULL);
 
+    printf("[INFO]: To stop press Enter.\n");
+    getchar();
+
+    SetEvent(hStop);
+
     WaitForSingleObject(hGen, INFINITE);
     WaitForSingleObject(hSend, INFINITE);
 
-    cp_wait_and_cleanup(cpProcs, cpCount);
-    dd_wait_and_cleanup(ddProcs, ddCount);
+    cp_terminate_all();
+
+    CloseHandle(hGen);
+    CloseHandle(hSend);
+    CloseHandle(hStop);
 
     tsqueue_destroy(globalQ);
     node_info_destroy_all(nodes, nodeCount);
-
     WSACleanup();
-    return 0;
+
+    printf("[INFO] Cleaned up and safe to exit.");
+    getchar();
+
+    return EXIT_SUCCESS;
 }

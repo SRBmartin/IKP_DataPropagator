@@ -4,6 +4,11 @@
 #include <string.h>
 #include <windows.h>
 
+PROCESS_INFORMATION * g_cpProcs = NULL;
+size_t               g_cpCount = 0;
+PROCESS_INFORMATION * g_ddProcs = NULL;
+size_t               g_ddCount = 0;
+
 static HANDLE g_job = NULL;
 
 static BOOL create_job_object()
@@ -86,7 +91,9 @@ PROCESS_INFORMATION* cp_launch_all(
     }
 
     *outLaunchCount = eligible;
-    return procs;
+    g_cpProcs = procs;
+    g_cpCount = eligible;
+    return g_cpProcs;
 }
 
 PROCESS_INFORMATION* dd_launch_all(const NodeInfo* nodes, size_t nodeCount, size_t* outLaunchCount)
@@ -150,39 +157,36 @@ PROCESS_INFORMATION* dd_launch_all(const NodeInfo* nodes, size_t nodeCount, size
     }
 
     *outLaunchCount = count;
-    return procs;
+    g_ddCount = count;
+    g_ddProcs = procs;
+    return g_ddProcs;
 }
 
-void cp_wait_and_cleanup(
-    PROCESS_INFORMATION* procs,
-    size_t               launchCount)
-{
-    if (!procs) return;
-    for (size_t i = 0; i < launchCount; i++) {
-        WaitForSingleObject(procs[i].hProcess, INFINITE);
-        CloseHandle(procs[i].hThread);
-        CloseHandle(procs[i].hProcess);
-    }
-    free(procs);
-
+void cp_terminate_all(void) {
     if (g_job) {
         CloseHandle(g_job);
         g_job = NULL;
     }
-}
 
-void dd_wait_and_cleanup(PROCESS_INFORMATION* procs, size_t launchCount)
-{
-    if (!procs) return;
-    for (size_t i = 0; i < launchCount; i++) {
-        WaitForSingleObject(procs[i].hProcess, INFINITE);
-        CloseHandle(procs[i].hThread);
-        CloseHandle(procs[i].hProcess);
+    if (g_cpProcs) {
+        for (size_t i = 0; i < g_cpCount; i++) {
+            WaitForSingleObject(g_cpProcs[i].hProcess, INFINITE);
+            CloseHandle(g_cpProcs[i].hThread);
+            CloseHandle(g_cpProcs[i].hProcess);
+        }
+        free(g_cpProcs);
+        g_cpProcs = NULL;
+        g_cpCount = 0;
     }
-    free(procs);
 
-    if (g_job) {
-        CloseHandle(g_job);
-        g_job = NULL;
+    if (g_ddProcs) {
+        for (size_t i = 0; i < g_ddCount; i++) {
+            WaitForSingleObject(g_ddProcs[i].hProcess, INFINITE);
+            CloseHandle(g_ddProcs[i].hThread);
+            CloseHandle(g_ddProcs[i].hProcess);
+        }
+        free(g_ddProcs);
+        g_ddProcs = NULL;
+        g_ddCount = 0;
     }
 }

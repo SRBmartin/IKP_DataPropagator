@@ -8,6 +8,7 @@ typedef struct {
     TSQueue* queue;
     NodeInfo* nodes;
     size_t     node_count;
+    HANDLE stopEvent;
 } SenderArgs;
 
 void* network_sender_thread(void* arg);

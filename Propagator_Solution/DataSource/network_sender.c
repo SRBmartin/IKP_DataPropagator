@@ -6,9 +6,9 @@
 
 void* network_sender_thread(void* arg) {
     SenderArgs* a = (SenderArgs*)arg;
-    while (1) {
+    while (WaitForSingleObject(a->stopEvent, 0) == WAIT_TIMEOUT) {
         Warning* w = tsqueue_dequeue(a->queue);
-        if (!w) continue;
+        if (w == NULL) break;
 
         NodeInfo* dest = node_find_by_id(
             a->nodes, a->node_count, w->dest_node
