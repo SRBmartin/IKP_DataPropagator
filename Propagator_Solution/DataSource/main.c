@@ -15,6 +15,8 @@
 #include "../Common/utils.h"
 #include "cp_launcher.h"
 
+#define NODES_PATH "../Common/nodes.csv"
+
 static DWORD WINAPI gen_thread_fn(LPVOID arg) {
     return (DWORD)(uintptr_t)data_generator_thread(arg);
 }
@@ -28,7 +30,7 @@ int main(void) {
 
     NodeInfo* nodes;
     size_t nodeCount;
-    NodeInfo* root = load_root("../Common/nodes.csv", &nodes, &nodeCount);
+    NodeInfo* root = load_root(NODES_PATH, &nodes, &nodeCount);
     if (!root) return EXIT_FAILURE;
 
     size_t launchCount;

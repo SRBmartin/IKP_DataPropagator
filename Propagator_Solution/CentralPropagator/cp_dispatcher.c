@@ -4,24 +4,20 @@
 #include "cp_dispatcher.h"
 #include "../Common/propagator_client.h"
 #include "../Common/utils.h"
-#include "../Common/hashmap.h"    // for hashmap_get
+#include "../Common/hashmap.h"
 
-// internal job struct: pairs context + warning
 typedef struct {
     CPContext* ctx;
     Warning* w;
 } DispatchJob;
 
-// this function runs on a thread pool worker
 static void dispatch_job_fn(void* arg) {
     DispatchJob* job = (DispatchJob*)arg;
     CPContext* ctx = job->ctx;
     Warning* w = job->w;
 
-    // find the subtree node for this warning
     NodeInfo* dest = hashmap_get(ctx->map, w->dest_node);
 
-    // compute the next hop
     NodeInfo* hop;
     if (dest == NULL) {
         hop = ctx->me;
@@ -40,9 +36,9 @@ static void dispatch_job_fn(void* arg) {
     printf("[CP %s] Received warning, propagating to %s\n",
         ctx->me->id, hop->id);
 
-    if (propagator_client_init(hop->address, hop->port)) {
-        propagate_warning(w);
-        propagator_client_shutdown();
+    if (!send_warning_to(hop->address, hop->port, w)) {
+        printf("[CP %s - ERROR] Failed to propagate data to %s.\n",
+            ctx->me->id, hop->id);
     }
 
     warning_destroy(w);
@@ -73,7 +69,7 @@ void cp_dispatcher_submit(CPDispatcher* d, Warning* w) {
     job->ctx = d->ctx;
     job->w = w;
 
-    // *** pass all three args! ***
+    
     if (!tp_submit(d->pool, dispatch_job_fn, job)) {
         warning_destroy(w);
         free(job);
@@ -82,7 +78,7 @@ void cp_dispatcher_submit(CPDispatcher* d, Warning* w) {
 
 void cp_dispatcher_shutdown(CPDispatcher* d) {
     if (!d) return;
-    // matches bool tp_submit(ThreadPool*,tp_task_fn,void*)
+    
     tp_shutdown(d->pool);
     free(d);
 }

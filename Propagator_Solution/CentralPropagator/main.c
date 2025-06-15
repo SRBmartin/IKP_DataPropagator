@@ -16,6 +16,7 @@
 #include "cp_dispatcher.h"
 
 #define THREAD_POOL_SIZE 4
+#define NODES_PATH "../Common/nodes.csv"
 
 int main(int argc, char** argv) {
     WSADATA wsa;
@@ -31,22 +32,20 @@ int main(int argc, char** argv) {
     const char* root_id = argv[1];
     uint16_t     port = (uint16_t)atoi(argv[2]);
 
-    CPContext* ctx = cp_context_create("../Common/nodes.csv", root_id);
+    CPContext* ctx = cp_context_create(NODES_PATH, root_id);
     if (!ctx) {
         fprintf(stderr, "Failed to load subtree for %s\n", root_id);
         return 1;
     }
 
-    CPDispatcher* dispatcher =
-        cp_dispatcher_create(ctx, THREAD_POOL_SIZE);
+    CPDispatcher* dispatcher = cp_dispatcher_create(ctx, THREAD_POOL_SIZE);
     if (!dispatcher) {
         cp_context_destroy(ctx);
         fprintf(stderr, "Failed to start dispatcher\n");
         return 1;
     }
 
-    HANDLE hListener =
-        cp_start_listener_thread(ctx, port, dispatcher);
+    HANDLE hListener = cp_start_listener_thread(ctx, port, dispatcher);
     if (!hListener) {
         cp_dispatcher_shutdown(dispatcher);
         cp_context_destroy(ctx);

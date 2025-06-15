@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "network_sender.h"
 #include "../Common/Warning.h"
 #include "../Common/propagator_client.h"
@@ -19,9 +20,8 @@ void* network_sender_thread(void* arg) {
 
         NodeInfo* root = find_root(dest);
 
-        if (propagator_client_init(root->address, root->port)) {
-            propagate_warning(w);
-            propagator_client_shutdown();
+        if (!send_warning_to(root->address, root->port, w)) {
+            printf("[DS - ERROR] Failed to propagate data to %s.\n", root->id);
         }
 
         warning_destroy(w);
