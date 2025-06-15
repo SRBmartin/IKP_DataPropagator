@@ -24,6 +24,41 @@ static DWORD WINAPI send_thread_fn(LPVOID arg) {
     return (DWORD)(uintptr_t)network_sender_thread(arg);
 }
 
+//This is only partial awaiter, it's not always gonna await fully since we don't have the full control over the external processes.
+static void await_cp_and_dd_propagation_objects(int cpCount, int ddCount, PROCESS_INFORMATION* cpProcs, PROCESS_INFORMATION* ddProcs) {
+    if (cpCount > 0) {
+        HANDLE* handles = malloc(cpCount * sizeof(HANDLE));
+        for (size_t i = 0; i < cpCount; i++) {
+            handles[i] = cpProcs[i].hProcess;
+        }
+
+        WaitForMultipleObjects(
+            (DWORD)cpCount,
+            handles,
+            FALSE,
+            2000
+        );
+
+        free(handles);
+    }
+
+    if (ddCount > 0) {
+        HANDLE* handles = malloc(ddCount * sizeof(HANDLE));
+        for (size_t i = 0; i < cpCount; i++) {
+            handles[i] = ddProcs[i].hProcess;
+        }
+
+        WaitForMultipleObjects(
+            (DWORD)ddCount,
+            handles,
+            FALSE,
+            2000
+        );
+
+        free(handles);
+    }
+}
+
 int main(void) {
     WSADATA wsa;
     WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -33,9 +68,9 @@ int main(void) {
     NodeInfo* root = load_root(NODES_PATH, &nodes, &nodeCount);
     if (!root) return EXIT_FAILURE;
 
-    size_t launchCount;
-    PROCESS_INFORMATION* cpProcs = cp_launch_all(nodes, nodeCount, &launchCount);
-    if (!cpProcs && launchCount > 0) {
+    size_t cpCount;
+    PROCESS_INFORMATION* cpProcs = cp_launch_all(nodes, nodeCount, &cpCount);
+    if (!cpProcs && cpCount > 0) {
         fprintf(stderr, "Failed to launch CentralPropagator nodes.\n");
         return EXIT_FAILURE;
     }
@@ -46,6 +81,8 @@ int main(void) {
         fprintf(stderr, "Failed to launch DataDestination nodes.\n");
         return EXIT_FAILURE;
     }
+
+    await_cp_and_dd_propagation_objects(cpCount, ddCount, cpProcs, ddProcs);
 
     initializeConsoleSettings();
     TSQueue* globalQ = tsqueue_create(0, (void(*)(void*))warning_destroy);
@@ -59,7 +96,7 @@ int main(void) {
     WaitForSingleObject(hGen, INFINITE);
     WaitForSingleObject(hSend, INFINITE);
 
-    cp_wait_and_cleanup(cpProcs, launchCount);
+    cp_wait_and_cleanup(cpProcs, cpCount);
     dd_wait_and_cleanup(ddProcs, ddCount);
 
     tsqueue_destroy(globalQ);
