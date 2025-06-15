@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../Common/tsqueue.h"
-#include "../Common/Warning.h"
+#include "../Common/warning.h"
 #include "../Common/node.h"
 #include "config_loader.h"
 #include "data_generator.h"

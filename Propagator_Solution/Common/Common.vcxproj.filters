@@ -21,7 +21,7 @@
     <ClInclude Include="hashmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Warning.h">
+    <ClInclude Include="warning.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="node.h">

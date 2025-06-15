@@ -4,7 +4,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #include "../Common/tsqueue.h"
-#include "../Common/Warning.h"
+#include "../Common/warning.h"
 
 typedef struct {
     char* id;

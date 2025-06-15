@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "network_sender.h"
-#include "../Common/Warning.h"
+#include "../Common/warning.h"
 #include "../Common/propagator_client.h"
 #include "../Common/utils.h"
 

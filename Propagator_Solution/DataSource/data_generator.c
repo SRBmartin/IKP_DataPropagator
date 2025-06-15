@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <stdint.h>
 #include "data_generator.h"
-#include "../Common/Warning.h"
+#include "../Common/warning.h"
 
 void* data_generator_thread(void* arg) {
     GeneratorArgs* a = (GeneratorArgs*)arg;

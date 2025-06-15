@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "cp_listener.h"
-#include "../Common/Warning.h"
+#include "../Common/warning.h"
 #include "../Common/utils.h"
 
 static int recv_all(SOCKET s, char* buf, int n) {
