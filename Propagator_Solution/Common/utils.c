@@ -1,5 +1,7 @@
 #include "utils.h"
 
+#pragma comment(lib, "Ws2_32.lib")
+
 void initializeConsoleSettings(void) {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
@@ -19,4 +21,12 @@ NodeInfo* find_root(NodeInfo* n) {
         n = n->parent;
     }
     return n;
+}
+
+uint64_t network_to_host64(uint64_t x) {
+    uint32_t hi_net = (uint32_t)x;
+    uint32_t lo_net = (uint32_t)(x >> 32);
+    uint32_t hi = ntohl(hi_net);
+    uint32_t lo = ntohl(lo_net);
+    return ((uint64_t)hi << 32) | lo;
 }

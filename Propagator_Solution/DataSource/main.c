@@ -34,8 +34,18 @@ int main(void) {
     if (!root) return EXIT_FAILURE;
 
     size_t launchCount;
-    PROCESS_INFORMATION* procs = cp_launch_all(nodes, nodeCount, &launchCount);
-    if (!procs) return EXIT_FAILURE;
+    PROCESS_INFORMATION* cpProcs = cp_launch_all(nodes, nodeCount, &launchCount);
+    if (!cpProcs && launchCount > 0) {
+        fprintf(stderr, "Failed to launch CentralPropagator nodes.\n");
+        return EXIT_FAILURE;
+    }
+
+    size_t ddCount;
+    PROCESS_INFORMATION* ddProcs = dd_launch_all(nodes, nodeCount, &ddCount);
+    if (!ddProcs && ddCount > 0) {
+        fprintf(stderr, "Failed to launch DataDestination nodes.\n");
+        return EXIT_FAILURE;
+    }
 
     initializeConsoleSettings();
     TSQueue* globalQ = tsqueue_create(0, (void(*)(void*))warning_destroy);
@@ -49,7 +59,9 @@ int main(void) {
     WaitForSingleObject(hGen, INFINITE);
     WaitForSingleObject(hSend, INFINITE);
 
-    cp_wait_and_cleanup(procs, launchCount);
+    cp_wait_and_cleanup(cpProcs, launchCount);
+    dd_wait_and_cleanup(ddProcs, ddCount);
+
     tsqueue_destroy(globalQ);
     node_info_destroy_all(nodes, nodeCount);
 
