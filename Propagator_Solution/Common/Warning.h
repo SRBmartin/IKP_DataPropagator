@@ -18,13 +18,20 @@ typedef struct Warning {
     char*        dest_node;
 } Warning;
 
+static const char* WarningTypeNames[] = {
+    [WARNING_TYPE_FLOOD] = "Flood alert",
+    [WARNING_TYPE_FIRE] = "Fire alert",
+    [WARNING_TYPE_STORM] = "Storm alert",
+    [WARNING_TYPE_OTHER] = "Other alert"
+};
+
 Warning* warning_create(const char* city,
     WarningType type,
     double value,
     uint64_t timestamp,
     const char* dest_node);
-
 void warning_destroy(Warning* w);
 char* warning_to_string(const Warning* w);
+const char* warning_type_to_string(WarningType t);
 
 #endif

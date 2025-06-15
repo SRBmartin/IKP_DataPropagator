@@ -39,42 +39,53 @@ void warning_destroy(Warning* w)
     free(w);
 }
 
-char* warning_to_string(const Warning* w)
-{
+char* warning_to_string(const Warning* w) {
     if (!w) return NULL;
 
-    const char* fmt = "city=%s, type=%d, value=%.2f, ts=%" PRIu64 ", dest=%s";
+    const char* fmt = "city=%s, type=%s, value=%.2f, ts=%llu, dest=%s";
+    const char* type_str = warning_type_to_string(w->type);
 
-    size_t city_len = strlen(w->city);
-    size_t dest_len = strlen(w->dest_node);
-    size_t buf_len = city_len + dest_len + 64;
+    int needed =
+#ifdef _MSC_VER
+        _scprintf(fmt,
+#else
+            snprintf(NULL, 0, fmt,
+#endif
+                w->city,
+                type_str,
+                w->value,
+                (unsigned long long)w->timestamp,
+                w->dest_node
+#ifdef _MSC_VER
+            );
+#else
+        );
+#endif
 
-    char* buf = malloc(buf_len);
+    if (needed < 0) return NULL;
+    char* buf = malloc((size_t)needed + 1);
     if (!buf) return NULL;
 
 #ifdef _MSC_VER
-    sprintf_s(
-        buf,
-        buf_len,
-        fmt,
+    sprintf_s(buf, (size_t)needed + 1, fmt,
+#else
+    snprintf(buf, (size_t)needed + 1, fmt,
+#endif
         w->city,
-        (int)w->type,
+        type_str,
         w->value,
-        (uint64_t)w->timestamp,
+        (unsigned long long)w->timestamp,
         w->dest_node
+#ifdef _MSC_VER
     );
 #else
-    snprintf(
-        buf,
-        buf_len,
-        fmt,
-        w->city,
-        (int)w->type,
-        w->value,
-        (uint64_t)w->timestamp,
-        w->dest_node
-    );
+        );
 #endif
 
     return buf;
+}
+
+const char* warning_type_to_string(WarningType t) {
+    if (t < 0 || t > WARNING_TYPE_OTHER) return "Unknown warning type";
+    return WarningTypeNames[t];
 }
