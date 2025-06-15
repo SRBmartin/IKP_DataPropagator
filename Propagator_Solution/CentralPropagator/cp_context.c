@@ -27,6 +27,7 @@ CPContext* cp_context_create(const char* nodes_csv,
 {
     size_t total;
     NodeInfo* all = node_load_all(nodes_csv, &total);
+
     if (!all) return NULL;
 
     HashMap* allmap = hashmap_create(total,
@@ -34,6 +35,7 @@ CPContext* cp_context_create(const char* nodes_csv,
         eq_string,
         free,
         NULL);
+
     for (size_t i = 0; i < total; i++) {
         hashmap_put(allmap, _strdup(all[i].id), &all[i]);
     }
@@ -57,8 +59,9 @@ CPContext* cp_context_create(const char* nodes_csv,
     ctx->me = me;
     ctx->child_count = me->child_count;
     ctx->children = malloc(ctx->child_count * sizeof(*ctx->children));
-    for (size_t i = 0; i < ctx->child_count; i++)
+    for (size_t i = 0; i < ctx->child_count; i++) {
         ctx->children[i] = me->children[i];
+    }
     ctx->all_nodes = all;
     ctx->all_count = total;
 

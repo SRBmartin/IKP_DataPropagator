@@ -32,6 +32,7 @@ HANDLE cp_start_listener_thread(
 
 void cp_join_listener_thread(HANDLE hListener) {
     if (!hListener) return;
+
     WaitForSingleObject(hListener, INFINITE);
     CloseHandle(hListener);
 }

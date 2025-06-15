@@ -5,7 +5,6 @@
 #include <ctype.h>
 #include <stdio.h>
 
-/** strip leading/trailing whitespace in-place **/
 static char* trim(char* s) {
     char* end;
     while (*s && isspace((unsigned char)*s)) s++;
@@ -71,13 +70,11 @@ NodeInfo* node_load_all(const char* path, size_t* outCount) {
     }
     fclose(f);
 
-    // build a map of id → NodeInfo*
     HashMap* m = hashmap_create(cap, hash_string, eq_string, free, NULL);
     for (size_t i = 0; i < cnt; i++) {
         hashmap_put(m, _strdup(arr[i].id), &arr[i]);
     }
 
-    // link parents
     for (size_t i = 0; i < cnt; i++) {
         if (parent_ids[i]) {
             NodeInfo* par = hashmap_get(m, parent_ids[i]);
@@ -86,7 +83,6 @@ NodeInfo* node_load_all(const char* path, size_t* outCount) {
         }
     }
 
-    // allocate children arrays
     for (size_t i = 0; i < cnt; i++) {
         if (arr[i].child_count > 0) {
             arr[i].children = malloc(
@@ -96,7 +92,6 @@ NodeInfo* node_load_all(const char* path, size_t* outCount) {
         }
     }
 
-    // populate children pointers
     for (size_t i = 0; i < cnt; i++) {
         if (arr[i].parent) {
             NodeInfo* par = arr[i].parent;
@@ -104,14 +99,12 @@ NodeInfo* node_load_all(const char* path, size_t* outCount) {
         }
     }
 
-    // assign node types
     for (size_t i = 0; i < cnt; i++) {
         if (!arr[i].parent)            arr[i].type = NODE_ROOT;
         else if (arr[i].child_count)   arr[i].type = NODE_CENTRAL;
         else                            arr[i].type = NODE_DESTINATION;
     }
 
-    // clean up temp parent_ids
     for (size_t i = 0; i < cnt; i++) {
         free(parent_ids[i]);
     }

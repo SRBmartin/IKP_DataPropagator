@@ -68,7 +68,7 @@ PROCESS_INFORMATION* cp_launch_all(
             NULL, NULL,
             &si, &procs[idx]))
         {
-            // cleanup on failure
+            // Cleanup on failure
             for (size_t j = 0; j < idx; j++) {
                 TerminateProcess(procs[j].hProcess, 1);
                 CloseHandle(procs[j].hThread);

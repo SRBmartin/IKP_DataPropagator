@@ -20,11 +20,14 @@
 
 int main(int argc, char** argv) {
     WSADATA wsa;
-    WSAStartup(MAKEWORD(2, 2), &wsa);
+    if (!WSAStartup(MAKEWORD(2, 2), &wsa)) {
+        fprintf(stderr, "Startup of WSA service has failed. Exiting...");
+        return EXIT_FAILURE;
+    }
 
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <node_id> <port>\n", argv[0]);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     initializeConsoleSettings();
@@ -35,14 +38,14 @@ int main(int argc, char** argv) {
     CPContext* ctx = cp_context_create(NODES_PATH, root_id);
     if (!ctx) {
         fprintf(stderr, "Failed to load subtree for %s\n", root_id);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     CPDispatcher* dispatcher = cp_dispatcher_create(ctx, THREAD_POOL_SIZE);
     if (!dispatcher) {
         cp_context_destroy(ctx);
         fprintf(stderr, "Failed to start dispatcher\n");
-        return 1;
+        return EXIT_FAILURE;
     }
 
     HANDLE hListener = cp_start_listener_thread(ctx, port, dispatcher);
@@ -50,15 +53,14 @@ int main(int argc, char** argv) {
         cp_dispatcher_shutdown(dispatcher);
         cp_context_destroy(ctx);
         fprintf(stderr, "Failed to start listener on port %hu\n", port);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     printf("[CP %s] listening on port %hu\n", root_id, port);
     cp_join_listener_thread(hListener);
 
-    // cleanup
     cp_dispatcher_shutdown(dispatcher);
     cp_context_destroy(ctx);
     WSACleanup();
-    return 0;
+    return EXIT_SUCCESS;
 }

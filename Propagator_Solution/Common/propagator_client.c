@@ -41,14 +41,13 @@ bool send_warning_to(const char* address,
         return false;
     }
 
-    // serialize:
     uint32_t city_len = (uint32_t)strlen(w->city);
     uint32_t dest_len = (uint32_t)strlen(w->dest_node);
     size_t   buf_len = 4 + city_len
         + 4 + dest_len
-        + 4    // Type
-        + 8    // Value
-        + 8;   // Timestamp
+        + 4
+        + 8
+        + 8;
 
     char* buf = malloc(buf_len);
     if (!buf) {

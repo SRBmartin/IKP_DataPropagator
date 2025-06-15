@@ -116,7 +116,6 @@ void cp_listener_run(const CPContext* ctx,
         cp_dispatcher_submit(dispatcher, w);
     }
 
-    // never reached
     closesocket(listen_sock);
     WSACleanup();
 }

@@ -19,7 +19,8 @@ static DWORD WINAPI worker_thread(LPVOID lpParam) {
     ThreadPool* pool = lpParam;
     for (;;) {
         Task* t = (Task*)tsqueue_dequeue(pool->queue);
-        if (!t) break;           // queue destroyed ⇒ time to exit
+        if (!t) break;
+
         t->fn(t->arg);
         free(t);
     }
@@ -60,7 +61,8 @@ bool tp_submit(ThreadPool* pool, tp_task_fn fn, void* arg) {
 void tp_shutdown(ThreadPool* pool) {
     if (!pool) return;
     pool->shutting_down = true;
-    tsqueue_destroy(pool->queue);      // wake up all workers
+    tsqueue_destroy(pool->queue);
+
     for (size_t i = 0; i < pool->thread_count; i++) {
         WaitForSingleObject(pool->threads[i], INFINITE);
         CloseHandle(pool->threads[i]);
