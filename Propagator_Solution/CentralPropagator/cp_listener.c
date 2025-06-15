@@ -13,10 +13,12 @@
 #include "../Common/Warning.h"
 #include "../Common/utils.h"
 
-// convert network-order uint64 → host
 static inline uint64_t network_to_host64(uint64_t x) {
-    uint32_t hi = ntohl((uint32_t)(x >> 32));
-    uint32_t lo = ntohl((uint32_t)x);
+    uint32_t hi_net = (uint32_t)(x);
+    uint32_t lo_net = (uint32_t)(x >> 32);
+    uint32_t hi = ntohl(hi_net);
+    uint32_t lo = ntohl(lo_net);
+
     return ((uint64_t)hi << 32) | lo;
 }
 
@@ -33,7 +35,7 @@ static int recv_all(SOCKET s, char* buf, int n) {
 static Warning* deserialize_warning(SOCKET s) {
     uint32_t len32;
     if (recv_all(s, (char*)&len32, 4) != 4) return NULL;
-    uint32_t city_len = (uint32_t)network_to_host64(len32);
+    uint32_t city_len = ntohl(len32);
 
     char* city = malloc(city_len + 1);
     if (!city) return NULL;
@@ -44,7 +46,7 @@ static Warning* deserialize_warning(SOCKET s) {
     city[city_len] = '\0';
 
     if (recv_all(s, (char*)&len32, 4) != 4) { free(city); return NULL; }
-    uint32_t dest_len = (uint32_t)network_to_host64(len32);
+    uint32_t dest_len = ntohl(len32);
 
     char* dest = malloc(dest_len + 1);
     if (!dest) { free(city); return NULL; }

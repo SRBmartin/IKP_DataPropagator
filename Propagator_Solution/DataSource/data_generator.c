@@ -50,7 +50,7 @@ void* data_generator_thread(void* arg) {
             free(desc);
         }
 
-        Sleep((rand() % 1000) + 500);
+        Sleep((rand() % 500) + 1000);
     }
 
     free(dests);

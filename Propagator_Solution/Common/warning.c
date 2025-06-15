@@ -43,10 +43,8 @@ char* warning_to_string(const Warning* w)
 {
     if (!w) return NULL;
 
-    // format: city=<str>, type=<int>, value=<float>, ts=<uint64>, dest=<str>
     const char* fmt = "city=%s, type=%d, value=%.2f, ts=%" PRIu64 ", dest=%s";
 
-    // compute a safe buffer size
     size_t city_len = strlen(w->city);
     size_t dest_len = strlen(w->dest_node);
     size_t buf_len = city_len + dest_len + 64;
@@ -55,7 +53,6 @@ char* warning_to_string(const Warning* w)
     if (!buf) return NULL;
 
 #ifdef _MSC_VER
-    // secure MSVC variant
     sprintf_s(
         buf,
         buf_len,
@@ -67,7 +64,6 @@ char* warning_to_string(const Warning* w)
         w->dest_node
     );
 #else
-    // POSIX
     snprintf(
         buf,
         buf_len,
