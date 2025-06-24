@@ -44,7 +44,7 @@ static void await_cp_and_dd_propagation_objects(int cpCount, int ddCount, PROCES
 
     if (ddCount > 0) {
         HANDLE* handles = malloc(ddCount * sizeof(HANDLE));
-        for (size_t i = 0; i < cpCount; i++) {
+        for (size_t i = 0; i < ddCount; i++) {
             handles[i] = ddProcs[i].hProcess;
         }
 

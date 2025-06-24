@@ -17,14 +17,15 @@ bool send_warning_to(const char* address,
     uint16_t     port,
     const Warning* w)
 {
-    WSADATA wsa;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-        return false;
-    }
+    //WSADATA wsa;
+    //if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+    //    return false;
+    //}
 
     SOCKET s = socket(AF_INET,
         SOCK_STREAM,
         IPPROTO_TCP);
+
     if (s == INVALID_SOCKET) {
         WSACleanup();
         return false;
@@ -36,10 +37,19 @@ bool send_warning_to(const char* address,
     InetPtonA(AF_INET, address, &sa.sin_addr);
 
     if (connect(s, (struct sockaddr*)&sa, sizeof(sa)) != 0) {
+        int err = WSAGetLastError();
+        printf("[DS - ERROR] Connect failed with code: %d\n", err);
         closesocket(s);
         WSACleanup();
         return false;
     }
+
+
+    //if (connect(s, (struct sockaddr*)&sa, sizeof(sa)) != 0) {
+    //    closesocket(s);
+    //    WSACleanup();
+    //    return false;
+    //}
 
     uint32_t city_len = (uint32_t)strlen(w->city);
     uint32_t dest_len = (uint32_t)strlen(w->dest_node);
@@ -81,7 +91,7 @@ bool send_warning_to(const char* address,
     int sent = send(s, buf, (int)buf_len, 0);
     free(buf);
     closesocket(s);
-    WSACleanup();
+    //WSACleanup();
 
     return sent == (int)buf_len;
 }
