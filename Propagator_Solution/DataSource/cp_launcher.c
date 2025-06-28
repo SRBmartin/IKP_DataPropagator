@@ -68,7 +68,7 @@ PROCESS_INFORMATION* cp_launch_all(
 
         if (!CreateProcessA(
             NULL, cmd,
-            NULL, NULL, FALSE,
+            NULL, NULL, TRUE,
             CREATE_NEW_CONSOLE,
             NULL, NULL,
             &si, &procs[idx]))

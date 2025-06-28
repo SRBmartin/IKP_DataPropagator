@@ -13,6 +13,7 @@ static uint64_t host_to_network64(uint64_t x) {
     return ((uint64_t)lo << 32) | hi;
 }
 
+//WSAStartup is commented along with its cleanups because we are using WSADATA and its corresponding WSACleanup in main
 bool send_warning_to(const char* address,
     uint16_t     port,
     const Warning* w)
@@ -27,7 +28,7 @@ bool send_warning_to(const char* address,
         IPPROTO_TCP);
 
     if (s == INVALID_SOCKET) {
-        WSACleanup();
+        //WSACleanup();
         return false;
     }
 
@@ -40,16 +41,10 @@ bool send_warning_to(const char* address,
         int err = WSAGetLastError();
         printf("[DS - ERROR] Connect failed with code: %d\n", err);
         closesocket(s);
-        WSACleanup();
+        //WSACleanup();
+        //there is a corresponding WSACleanup() in main
         return false;
     }
-
-
-    //if (connect(s, (struct sockaddr*)&sa, sizeof(sa)) != 0) {
-    //    closesocket(s);
-    //    WSACleanup();
-    //    return false;
-    //}
 
     uint32_t city_len = (uint32_t)strlen(w->city);
     uint32_t dest_len = (uint32_t)strlen(w->dest_node);
@@ -62,7 +57,7 @@ bool send_warning_to(const char* address,
     char* buf = malloc(buf_len);
     if (!buf) {
         closesocket(s);
-        WSACleanup();
+        //WSACleanup();
         return false;
     }
 

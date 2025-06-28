@@ -1,10 +1,15 @@
+#ifdef _DEBUG
 #define WIN32_LEAN_AND_MEAN
+#define _CRTDBG_MAP_ALLOC
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <crtdbg.h>
+#endif
+#pragma comment(lib, "User32.lib")
 #include "../Common/tsqueue.h"
 #include "../Common/warning.h"
 #include "../Common/node.h"
@@ -59,8 +64,31 @@ static void await_cp_and_dd_propagation_objects(int cpCount, int ddCount, PROCES
     }
 }
 
+static BOOL CALLBACK SendWmCloseToWindow(HWND hWnd, LPARAM lParam) {
+    DWORD winPID;
+    GetWindowThreadProcessId(hWnd, &winPID);
+    if ((DWORD)lParam == winPID) {
+        PostMessage(hWnd, WM_CLOSE, 0, 0); 
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static void gracefully_close_all(PROCESS_INFORMATION* procs, size_t count) {
+    for (size_t i = 0; i < count; ++i) {
+        DWORD pid = procs[i].dwProcessId;
+
+        BOOL found = EnumWindows(SendWmCloseToWindow, (LPARAM)pid);
+        if (!found) {
+            TerminateProcess(procs[i].hProcess, 0);
+        }
+    }
+}
+
+
 int main(void) {
     getchar();
+
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         printf("Failed to start WSA services. Exiting...");
@@ -106,12 +134,50 @@ int main(void) {
     HANDLE hSend = CreateThread(NULL, 0, send_thread_fn, &sendArgs, 0, NULL);
 
     printf("[INFO]: To stop press Enter.\n");
+
     getchar();
 
     SetEvent(hStop);
+    // Signal named events for DataDestination processes
+    for (size_t i = 0; i < nodeCount; i++) {
+        if (nodes[i].type == NODE_DESTINATION) {
+            char eventName[128];
+            snprintf(eventName, sizeof(eventName), "Global\\DD_Exit_%s", nodes[i].id);
+            HANDLE hExit = OpenEventA(EVENT_MODIFY_STATE, FALSE, eventName);
+            if (hExit) {
+                SetEvent(hExit);
+                CloseHandle(hExit);
+                printf("[INFO] Signaled shutdown to DataDestination node %s\n", nodes[i].id);
+            }
+            else {
+                printf("[WARN] Could not open exit event for node %s\n", nodes[i].id);
+            }
+        }
+    }
+
+    // Signal named events for CentralPropagator processes
+    for (size_t i = 0; i < nodeCount; i++) {
+        if (nodes[i].type != NODE_DESTINATION) { // CP nodes
+            char eventName[128];
+            snprintf(eventName, sizeof(eventName), "Global\\CP_Exit_%s", nodes[i].id);
+            HANDLE hExit = OpenEventA(EVENT_MODIFY_STATE, FALSE, eventName);
+            if (hExit) {
+                SetEvent(hExit);
+                CloseHandle(hExit);
+                printf("[INFO] Signaled shutdown to CentralPropagator node %s\n", nodes[i].id);
+            }
+            else {
+                printf("[WARN] Could not open exit event for CP node %s\n", nodes[i].id);
+            }
+        }
+    }
+
 
     WaitForSingleObject(hGen, INFINITE);
     WaitForSingleObject(hSend, INFINITE);
+
+    gracefully_close_all(cpProcs, cpCount);
+    gracefully_close_all(ddProcs, ddCount);
 
     cp_terminate_all();
 

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cp_shutdown.h"
 #include "cp_listener.h"
 #include "../Common/warning.h"
 #include "../Common/utils.h"
@@ -77,9 +78,6 @@ void cp_listener_run(const CPContext* ctx,
     uint16_t         port,
     CPDispatcher* dispatcher)
 {
-    WSADATA wsa;
-    WSAStartup(MAKEWORD(2, 2), &wsa);
-
     SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     struct sockaddr_in sa = {
         .sin_family = AF_INET,
@@ -90,6 +88,11 @@ void cp_listener_run(const CPContext* ctx,
     listen(listen_sock, SOMAXCONN);
 
     for (;;) {
+#ifdef _WIN32
+        if (WaitForSingleObject(g_exitEvent, 0) == WAIT_OBJECT_0) {
+            break;
+        }
+#endif
         SOCKET client = accept(listen_sock, NULL, NULL);
         if (client == INVALID_SOCKET) continue;
 
@@ -107,5 +110,4 @@ void cp_listener_run(const CPContext* ctx,
     }
 
     closesocket(listen_sock);
-    WSACleanup();
 }

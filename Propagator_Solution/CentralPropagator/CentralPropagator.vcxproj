@@ -139,6 +139,7 @@
     <ClInclude Include="cp_context.h" />
     <ClInclude Include="cp_dispatcher.h" />
     <ClInclude Include="cp_listener.h" />
+    <ClInclude Include="cp_shutdown.h" />
     <ClInclude Include="cp_thread.h" />
     <ClInclude Include="thread_pool.h" />
   </ItemGroup>
@@ -151,6 +152,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="cp_shutdown.c" />
     <ClCompile Include="cp_thread.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="thread_pool.c" />
