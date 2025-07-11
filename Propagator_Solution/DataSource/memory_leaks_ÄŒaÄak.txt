@@ -1,1 +1,32 @@
-[DEBUG] Log file initialized.
+=== MEMORY DEBUG REPORT FOR Čačak ===
+Log initialized at program start
+
+
+=== FINAL MEMORY ANALYSIS ===
+[INFO] No memory leaks detected.
+
+[STATISTICS] Initial memory state
+Total blocks: 0
+Total bytes: 0
+CRT blocks: 72
+CRT bytes: 16069
+Free blocks: 0
+Free bytes: 0
+
+[STATISTICS] Final memory state
+Total blocks: 0
+Total bytes: 0
+CRT blocks: 141
+CRT bytes: 31769
+Free blocks: 0
+Free bytes: 0
+
+[STATISTICS] Memory allocation difference
+Total blocks: 0
+Total bytes: 0
+CRT blocks: 69
+CRT bytes: 15700
+Free blocks: 0
+Free bytes: 0
+
+[SYSTEM] Process memory usage: 4860 KB

@@ -132,9 +132,9 @@ int main(int argc, char** argv) {
         dd_destroy(dd);
         return 1;
     }
-#ifdef _DEBUG
-    void* test_leak = malloc(100); // Intentional leak
-#endif
+//#ifdef _DEBUG
+//    void* test_leak = malloc(100); // Intentional leak
+//#endif
     SetConsoleCtrlHandler(console_handler, TRUE);
 #endif
 

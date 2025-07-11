@@ -3,32 +3,30 @@ Log initialized at program start
 
 
 === FINAL MEMORY ANALYSIS ===
-[INFO] Memory leaks detected.
+[INFO] No memory leaks detected.
 
 [STATISTICS] Initial memory state
 Total blocks: 0
 Total bytes: 0
-CRT blocks: 69
-CRT bytes: 15961
+CRT blocks: 72
+CRT bytes: 16064
 Free blocks: 0
 Free bytes: 0
 
 [STATISTICS] Final memory state
-Total blocks: 1
-Total bytes: 100
-CRT blocks: 134
-CRT bytes: 31391
+Total blocks: 0
+Total bytes: 0
+CRT blocks: 140
+CRT bytes: 31676
 Free blocks: 0
 Free bytes: 0
 
 [STATISTICS] Memory allocation difference
-Total blocks: 1
-Total bytes: 100
-CRT blocks: 65
-CRT bytes: 15430
+Total blocks: 0
+Total bytes: 0
+CRT blocks: 68
+CRT bytes: 15612
 Free blocks: 0
 Free bytes: 0
 
-[LEAK REPORT] Detailed leak information:
-
-[SYSTEM] Process memory usage: 4872 KB
+[SYSTEM] Process memory usage: 4752 KB

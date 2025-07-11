@@ -5,7 +5,9 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
+#include <psapi.h>
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "Psapi.lib")
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,6 +39,19 @@ BOOL WINAPI console_handler(DWORD signal) {
 #endif
 
 #ifdef _DEBUG
+void dump_to_file(FILE* file, const char* header, const _CrtMemState* state) {
+    if (!file || !state) return;
+
+    fprintf(file, "\n%s\n", header);
+    fprintf(file, "Total blocks: %u\n", state->lCounts[_NORMAL_BLOCK]);
+    fprintf(file, "Total bytes: %u\n", state->lSizes[_NORMAL_BLOCK]);
+    fprintf(file, "CRT blocks: %u\n", state->lCounts[_CRT_BLOCK]);
+    fprintf(file, "CRT bytes: %u\n", state->lSizes[_CRT_BLOCK]);
+    fprintf(file, "Free blocks: %u\n", state->lCounts[_FREE_BLOCK]);
+    fprintf(file, "Free bytes: %u\n", state->lSizes[_FREE_BLOCK]);
+    fflush(file);
+}
+
 FILE* setup_debug_memory_log(const char* node_id) {
     char filename[256];
     snprintf(filename, sizeof(filename), "memory_leaks_%s.txt", node_id);
@@ -57,13 +72,19 @@ FILE* setup_debug_memory_log(const char* node_id) {
     _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
     _CrtSetReportFile(_CRT_ASSERT, file);
 
-
-    fprintf(file, "[DEBUG] Log file initialized.\n");
+    fprintf(file, "=== MEMORY DEBUG REPORT FOR %s ===\n", node_id);
+    fprintf(file, "Log initialized at program start\n\n");
     fflush(file);
 
     return file;
 }
 #endif
+
+static DWORD WINAPI shutdown_waiter_fn(LPVOID arg) {
+    WaitForSingleObject(g_exitEvent, INFINITE);
+
+    return 0;
+}
 
 int main(int argc, char** argv) {
 #ifdef _DEBUG
@@ -99,9 +120,7 @@ int main(int argc, char** argv) {
     if (!logFile) {
         printf("Log files failed to open!");
     }
-
 #ifdef _WIN32
-    // Inicijalizuj exit event (isto kao kod DD)
     char eventName[128];
     snprintf(eventName, sizeof(eventName), "Global\\CP_Exit_%s", root_id);
     g_exitEvent = CreateEventA(NULL, TRUE, FALSE, eventName);
@@ -134,29 +153,48 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Failed to start listener on port %hu\n", port);
         return EXIT_FAILURE;
     }
-
-    printf("[CP %s] listening on port %hu\n", root_id, port);
-    cp_join_listener_thread(hListener);
-    fprintf(logFile, "HELLO.\n");
     fflush(logFile);
+    HANDLE hShutdownThread = CreateThread(NULL, 0, shutdown_waiter_fn, hListener, 0, NULL);
+
+    fflush(logFile);
+    printf("[CP %s] listening on port %hu\n", root_id, port);
+
+    WaitForSingleObject(hShutdownThread, INFINITE);
+    CloseHandle(hShutdownThread);
+    CloseHandle(hListener);
+
     cp_dispatcher_shutdown(dispatcher);
     cp_context_destroy(ctx);
     WSACleanup();
 
 #ifdef _DEBUG
-    _CrtMemCheckpoint(&s2);
-    if (_CrtMemDifference(&sDiff, &s1, &s2) && logFile) {
-        _CrtMemDumpStatistics(&sDiff);
-        _CrtDumpMemoryLeaks();
-        fprintf(logFile, "[INFO] Memory leaks detected.\n");
-    }
-    else {
-        if (logFile) {
-            fprintf(logFile, "[INFO] No memory leaks detected.\n");
+    if (logFile) {
+        fprintf(logFile, "\n=== FINAL MEMORY ANALYSIS ===\n");
+
+        _CrtMemCheckpoint(&s2);
+        if (_CrtMemDifference(&sDiff, &s1, &s2)) {
+            fprintf(logFile, "[INFO] Memory leaks detected.\n");
+            dump_to_file(logFile, "[STATISTICS] Initial memory state", &s1);
+            dump_to_file(logFile, "[STATISTICS] Final memory state", &s2);
+            dump_to_file(logFile, "[STATISTICS] Memory allocation difference", &sDiff);
+            fprintf(logFile, "\n[LEAK REPORT] Detailed leak information:\n");
+            _CrtMemDumpAllObjectsSince(&s1);
         }
+        else {
+            fprintf(logFile, "[INFO] No memory leaks detected.\n");
+            dump_to_file(logFile, "[STATISTICS] Initial memory state", &s1);
+            dump_to_file(logFile, "[STATISTICS] Final memory state", &s2);
+            dump_to_file(logFile, "[STATISTICS] Memory allocation difference", &sDiff);
+        }
+
+        PROCESS_MEMORY_COUNTERS pmc;
+        if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+            fprintf(logFile, "\n[SYSTEM] Process memory usage: %lu KB\n",
+                pmc.WorkingSetSize / 1024);
+        }
+        fflush(logFile);
+        fclose(logFile);
     }
-    fflush(logFile);
-    fclose(logFile);
 #endif
 
 #ifdef _WIN32
