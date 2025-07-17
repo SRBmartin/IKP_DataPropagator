@@ -1,4 +1,3 @@
-// cp_shutdown.c
 #ifdef _WIN32
 #include <windows.h>
 HANDLE g_exitEvent = NULL;
@@ -13,8 +12,3 @@ BOOL WINAPI console_handler(DWORD signal) {
     return FALSE;
 }
 #endif
-
-DWORD WINAPI shutdown_waiter_fn(LPVOID arg) {
-    WaitForSingleObject(g_exitEvent, INFINITE);
-    return 0;
-}

@@ -89,6 +89,23 @@ static void gracefully_close_all(PROCESS_INFORMATION* procs, size_t count) {
 int main(void) {
     getchar();
 
+#ifdef _DEBUG
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF |
+        _CRTDBG_LEAK_CHECK_DF |
+        _CRTDBG_CHECK_ALWAYS_DF);
+    _CrtMemState s1, s2, sDiff;
+    _CrtMemCheckpoint(&s1);
+#endif
+
+    FILE* logFile = NULL;
+
+#ifdef _DEBUG
+    logFile = setup_debug_memory_log("DataSource");
+#endif
+    if (!logFile) {
+        printf("Log files failed to open!");
+    }
+
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         printf("Failed to start WSA services. Exiting...");
@@ -191,6 +208,16 @@ int main(void) {
 
     printf("[INFO] Cleaned up and safe to exit.");
     getchar();
+
+    _CrtMemCheckpoint(&s2);
+    PROCESS_MEMORY_COUNTERS pmc;
+    GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+
+    print_stats_to_file(logFile, &s1, &s2, &sDiff, &pmc);
+
+    if (logFile) {
+        fclose(logFile);
+    }
 
     return EXIT_SUCCESS;
 }

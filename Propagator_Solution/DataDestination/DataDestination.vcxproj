@@ -128,9 +128,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="data_destination.h" />
+    <ClInclude Include="dd_shutdown.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="data_destination.c" />
+    <ClCompile Include="dd_shutdown.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
