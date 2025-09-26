@@ -1,5 +1,6 @@
 #include "utils.h"
 
+
 #pragma comment(lib, "Ws2_32.lib")
 
 void initializeConsoleSettings(void) {
@@ -49,11 +50,29 @@ void dump_to_file(FILE* file, const char* header, const _CrtMemState* state) {
 }
 
 FILE* setup_debug_memory_log(const char* node_id) {
+    const char* folderName = "MemoryLeakReports";
+
+    DWORD attrib = GetFileAttributesA(folderName);
+    if (attrib == INVALID_FILE_ATTRIBUTES) {
+        if (_mkdir(folderName) != 0) {
+            if (!CreateDirectoryA(folderName, NULL)) {
+                printf("Warning: Could not create directory %s. Using current directory.\n", folderName);
+                folderName = "."; 
+            }
+        }
+    }
+
     char filename[256];
-    snprintf(filename, sizeof(filename), "memory_leaks_%s.txt", node_id);
+    if (strcmp(folderName, ".") == 0) {
+        snprintf(filename, sizeof(filename), "memory_leaks_%s.txt", node_id);
+    }
+    else {
+        snprintf(filename, sizeof(filename), "%s/memory_leaks_%s.txt", folderName, node_id);
+    }
 
     FILE* file = NULL;
     if (fopen_s(&file, filename, "w") != 0) {
+        printf("Error: Could not open log file %s\n", filename);
         return NULL;
     }
 
@@ -72,8 +91,37 @@ FILE* setup_debug_memory_log(const char* node_id) {
     fprintf(file, "Log initialized at program start\n\n");
     fflush(file);
 
+    printf("Debug log created: %s\n", filename);
+
     return file;
 }
+
+//FILE* setup_debug_memory_log(const char* node_id) {
+//    char filename[256];
+//    snprintf(filename, sizeof(filename), "memory_leaks_%s.txt", node_id);
+//
+//    FILE* file = NULL;
+//    if (fopen_s(&file, filename, "w") != 0) {
+//        return NULL;
+//    }
+//
+//    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+//
+//    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+//    _CrtSetReportFile(_CRT_WARN, file);
+//
+//    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+//    _CrtSetReportFile(_CRT_ERROR, file);
+//
+//    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+//    _CrtSetReportFile(_CRT_ASSERT, file);
+//
+//    fprintf(file, "=== MEMORY DEBUG REPORT FOR %s ===\n", node_id);
+//    fprintf(file, "Log initialized at program start\n\n");
+//    fflush(file);
+//
+//    return file;
+//}
 
 void print_stats_to_file(FILE* file, const _CrtMemState* s1, const _CrtMemState* s2, const _CrtMemState* sDiff, PROCESS_MEMORY_COUNTERS* pmc) {
     if (file) {

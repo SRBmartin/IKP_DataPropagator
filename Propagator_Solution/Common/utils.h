@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <windows.h>
+#include <direct.h>
 #include "node.h"
 
 void initializeConsoleSettings(void);
