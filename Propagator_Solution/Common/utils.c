@@ -96,33 +96,6 @@ FILE* setup_debug_memory_log(const char* node_id) {
     return file;
 }
 
-//FILE* setup_debug_memory_log(const char* node_id) {
-//    char filename[256];
-//    snprintf(filename, sizeof(filename), "memory_leaks_%s.txt", node_id);
-//
-//    FILE* file = NULL;
-//    if (fopen_s(&file, filename, "w") != 0) {
-//        return NULL;
-//    }
-//
-//    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-//
-//    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-//    _CrtSetReportFile(_CRT_WARN, file);
-//
-//    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
-//    _CrtSetReportFile(_CRT_ERROR, file);
-//
-//    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
-//    _CrtSetReportFile(_CRT_ASSERT, file);
-//
-//    fprintf(file, "=== MEMORY DEBUG REPORT FOR %s ===\n", node_id);
-//    fprintf(file, "Log initialized at program start\n\n");
-//    fflush(file);
-//
-//    return file;
-//}
-
 void print_stats_to_file(FILE* file, const _CrtMemState* s1, const _CrtMemState* s2, const _CrtMemState* sDiff, PROCESS_MEMORY_COUNTERS* pmc) {
     if (file) {
         fprintf(file, "\n=== FINAL MEMORY ANALYSIS ===\n");

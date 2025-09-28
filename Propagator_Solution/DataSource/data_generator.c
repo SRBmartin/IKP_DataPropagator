@@ -32,7 +32,7 @@ void* data_generator_thread(void* arg) {
 
     int counter = 0;
 
-    while (WaitForSingleObject(a->stopEvent, 0) == WAIT_TIMEOUT && counter<20000) {
+    while (WaitForSingleObject(a->stopEvent, 0) == WAIT_TIMEOUT && counter<10000) {
         size_t j = rand() % dest_count;
         NodeInfo* n = dests[j];
 
@@ -51,8 +51,6 @@ void* data_generator_thread(void* arg) {
         }
 
         tsqueue_enqueue(a->queue, w);
-
-        //Sleep(20);
     }
 
     tsqueue_enqueue(a->queue, NULL); // We send NULL sentinel to break the loop and let the cleanup do it's job

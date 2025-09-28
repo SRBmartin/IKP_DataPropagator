@@ -100,32 +100,6 @@ static DWORD WINAPI listener_fn(LPVOID arg) {
     return 0;
 }
 
-//static DWORD WINAPI listener_fn(LPVOID arg) {
-//    DDContext* ctx = (DDContext*)arg;
-//
-//    SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-//    ctx->listen_sock = s;
-//    struct sockaddr_in sa = {
-//        .sin_family = AF_INET,
-//        .sin_addr.s_addr = htonl(INADDR_ANY),
-//        .sin_port = htons(ctx->port)
-//    };
-//    bind(s, (struct sockaddr*)&sa, sizeof(sa));
-//    listen(s, SOMAXCONN);
-//
-//    while (1) {
-//        SOCKET client = accept(s, NULL, NULL);
-//        if (client == INVALID_SOCKET) break;
-//
-//        Warning* w = deserialize_warning(client);
-//        closesocket(client);
-//        if (w) {
-//            tsqueue_enqueue(ctx->queue, w);
-//        }
-//    }
-//    return 0;
-//}
-
 static DWORD WINAPI processor_fn(LPVOID arg) {
     DDContext* ctx = (DDContext*)arg;
     for (;;) {
