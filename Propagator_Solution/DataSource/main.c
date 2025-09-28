@@ -19,6 +19,7 @@
 #include "../Common/propagator_client.h"
 #include "../Common/utils.h"
 #include "cp_launcher.h"
+#include "../Common/propagator_connections.h"
 
 #define NODES_PATH "../Common/nodes.csv"
 
@@ -116,6 +117,8 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
+    connections_init();
+
     NodeInfo* nodes;
     size_t nodeCount;
     NodeInfo* root = load_root(NODES_PATH, &nodes, &nodeCount);
@@ -208,6 +211,7 @@ int main(void) {
 
     tsqueue_destroy(globalQ);
     node_info_destroy_all(nodes, nodeCount);
+    connections_cleanup();
     WSACleanup();
 
     printf("[INFO] Cleaned up and safe to exit.");

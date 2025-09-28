@@ -21,6 +21,7 @@
 #include "cp_thread.h"
 #include "cp_dispatcher.h"
 #include "cp_shutdown.h"
+#include "../Common/propagator_connections.h"
 
 #define THREAD_POOL_SIZE 4
 #define NODES_PATH "../Common/nodes.csv"
@@ -41,6 +42,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+    connections_init();
 
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <node_id> <port>\n", argv[0]);
@@ -106,6 +108,7 @@ int main(int argc, char** argv) {
 
     cp_dispatcher_shutdown(dispatcher);
     cp_context_destroy(ctx);
+    connections_cleanup();
     WSACleanup();
 
     _CrtMemCheckpoint(&s2);

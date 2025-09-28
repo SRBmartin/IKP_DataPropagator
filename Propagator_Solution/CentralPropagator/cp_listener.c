@@ -74,39 +74,74 @@ static Warning* deserialize_warning(SOCKET s) {
     return w;
 }
 
-void cp_listener_run(const CPContext* ctx,
-    uint16_t         port,
-    CPDispatcher* dispatcher)
-{
+//void cp_listener_run(const CPContext* ctx,
+//    uint16_t         port,
+//    CPDispatcher* dispatcher)
+//{
+//    SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+//    struct sockaddr_in sa = {
+//        .sin_family = AF_INET,
+//        .sin_addr.s_addr = htonl(INADDR_ANY),
+//        .sin_port = htons(port)
+//    };
+//    bind(listen_sock, (struct sockaddr*)&sa, sizeof(sa));
+//    listen(listen_sock, SOMAXCONN);
+//
+//    for (;;) {
+//#ifdef _WIN32
+//        if (WaitForSingleObject(g_exitEvent, 0) == WAIT_OBJECT_0) {
+//            break;
+//        }
+//#endif
+//        SOCKET client = accept(listen_sock, NULL, NULL);
+//        if (client == INVALID_SOCKET) continue;
+//
+//        Warning* w = deserialize_warning(client);
+//        closesocket(client);
+//        if (!w) continue;
+//
+//        char* desc = warning_to_string(w);
+//        if (desc) {
+//            printf("[CP %s] Received: %s\n", ctx->me->id, desc);
+//            free(desc);
+//        }
+//
+//        cp_dispatcher_submit(dispatcher, w);
+//    }
+//
+//    closesocket(listen_sock);
+//}
+
+void cp_listener_run(const CPContext* ctx, uint16_t port, CPDispatcher* dispatcher) {
     SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    struct sockaddr_in sa = {
-        .sin_family = AF_INET,
-        .sin_addr.s_addr = htonl(INADDR_ANY),
-        .sin_port = htons(port)
-    };
+    struct sockaddr_in sa = { .sin_family = AF_INET, .sin_addr.s_addr = htonl(INADDR_ANY), .sin_port = htons(port) };
     bind(listen_sock, (struct sockaddr*)&sa, sizeof(sa));
     listen(listen_sock, SOMAXCONN);
 
     for (;;) {
 #ifdef _WIN32
-        if (WaitForSingleObject(g_exitEvent, 0) == WAIT_OBJECT_0) {
-            break;
-        }
+        if (WaitForSingleObject(g_exitEvent, 0) == WAIT_OBJECT_0) break;
 #endif
         SOCKET client = accept(listen_sock, NULL, NULL);
         if (client == INVALID_SOCKET) continue;
 
-        Warning* w = deserialize_warning(client);
-        closesocket(client);
-        if (!w) continue;
+        int opt = 1;
+        setsockopt(client, SOL_SOCKET, SO_KEEPALIVE, (const char*)&opt, sizeof(opt));
 
-        char* desc = warning_to_string(w);
-        if (desc) {
-            printf("[CP %s] Received: %s\n", ctx->me->id, desc);
-            free(desc);
+        for (;;) {
+            Warning* w = deserialize_warning(client);
+            if (!w) break; 
+
+            char* desc = warning_to_string(w);
+            if (desc) {
+                printf("[CP %s] Received: %s\n", ctx->me->id, desc);
+                free(desc);
+            }
+
+            cp_dispatcher_submit(dispatcher, w);
         }
 
-        cp_dispatcher_submit(dispatcher, w);
+        closesocket(client);
     }
 
     closesocket(listen_sock);
