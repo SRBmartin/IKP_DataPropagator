@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <crtdbg.h>
-#include <io.h>  // For _dup, _dup2, _fileno
+#include <io.h> 
 #endif
 
 
@@ -15,20 +15,6 @@
 #include <windows.h>
 #include <psapi.h>
 #endif
-
-//static HANDLE g_exitEvent = NULL;
-
-//#ifdef _WIN32
-//BOOL WINAPI console_handler(DWORD signal) {
-//    if (signal == CTRL_CLOSE_EVENT || signal == CTRL_C_EVENT) {
-//        if (g_exitEvent) {
-//            SetEvent(g_exitEvent);
-//        }
-//        return TRUE;
-//    }
-//    return FALSE;
-//}
-//#endif
 
 int main(int argc, char** argv) {
 

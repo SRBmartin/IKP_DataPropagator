@@ -56,7 +56,7 @@ bool send_warning_to(const char* address, uint16_t port, const Warning* w) {
 
     if (sent != (int)buf_len) {
         printf("[ERROR] Send failed to %s:%hu with code: %d\n", address, port, WSAGetLastError());
-        close_connection(address, port);  // Zatvori ako fail, reconnect sledeći put
+        close_connection(address, port); 
         return false;
     }
 

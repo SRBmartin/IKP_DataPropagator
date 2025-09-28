@@ -30,7 +30,7 @@ static DWORD WINAPI send_thread_fn(LPVOID arg) {
     return (DWORD)(uintptr_t)network_sender_thread(arg);
 }
 
-//This is only partial awaiter, it's not always gonna await fully since we don't have the full control over the external processes.
+
 static void await_cp_and_dd_propagation_objects(int cpCount, int ddCount, PROCESS_INFORMATION* cpProcs, PROCESS_INFORMATION* ddProcs) {
     Sleep(2000);
     
@@ -181,7 +181,7 @@ int main(void) {
 
     // Signal named events for CentralPropagator processes
     for (size_t i = 0; i < nodeCount; i++) {
-        if (nodes[i].type != NODE_DESTINATION) { // CP nodes
+        if (nodes[i].type != NODE_DESTINATION) {
             char eventName[128];
             snprintf(eventName, sizeof(eventName), "Global\\CP_Exit_%s", nodes[i].id);
             HANDLE hExit = OpenEventA(EVENT_MODIFY_STATE, FALSE, eventName);
