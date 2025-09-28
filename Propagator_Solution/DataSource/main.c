@@ -31,6 +31,8 @@ static DWORD WINAPI send_thread_fn(LPVOID arg) {
 
 //This is only partial awaiter, it's not always gonna await fully since we don't have the full control over the external processes.
 static void await_cp_and_dd_propagation_objects(int cpCount, int ddCount, PROCESS_INFORMATION* cpProcs, PROCESS_INFORMATION* ddProcs) {
+    Sleep(2000);
+    
     if (cpCount > 0) {
         HANDLE* handles = malloc(cpCount * sizeof(HANDLE));
         for (size_t i = 0; i < cpCount; i++) {
@@ -62,6 +64,8 @@ static void await_cp_and_dd_propagation_objects(int cpCount, int ddCount, PROCES
 
         free(handles);
     }
+
+    Sleep(2000);
 }
 
 static BOOL CALLBACK SendWmCloseToWindow(HWND hWnd, LPARAM lParam) {
