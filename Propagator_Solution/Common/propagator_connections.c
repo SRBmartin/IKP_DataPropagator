@@ -4,6 +4,9 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 
+HashMap* connections_map = NULL;
+CRITICAL_SECTION conn_mutex;
+
 static size_t hash_conn_key(const void* k) {
     const ConnectionKey* key = (const ConnectionKey*)k;
     size_t h = 5381;

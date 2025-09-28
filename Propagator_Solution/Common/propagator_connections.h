@@ -12,8 +12,8 @@ typedef struct {
     uint16_t port;
 } ConnectionKey;
 
-HashMap* connections_map; 
-CRITICAL_SECTION conn_mutex;  
+extern HashMap* connections_map;
+extern CRITICAL_SECTION conn_mutex;
 
 void connections_init();
 SOCKET get_or_create_connection(const char* address, uint16_t port);
