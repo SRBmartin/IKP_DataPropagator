@@ -32,7 +32,18 @@ NodeInfo* node_load_all(const char* path, size_t* outCount) {
 
     size_t cap = 16, cnt = 0;
     NodeInfo* arr = malloc(cap * sizeof(NodeInfo));
+    if (!arr) {
+        fclose(f);
+        return NULL;
+    }
+
     char** parent_ids = malloc(cap * sizeof(char*));
+    if (!parent_ids) {
+        free(arr);
+        fclose(f);
+        return NULL;
+    }
+
     char line[512];
 
     while (fgets(line, sizeof(line), f)) {

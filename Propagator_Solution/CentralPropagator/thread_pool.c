@@ -61,12 +61,18 @@ bool tp_submit(ThreadPool* pool, tp_task_fn fn, void* arg) {
 void tp_shutdown(ThreadPool* pool) {
     if (!pool) return;
     pool->shutting_down = true;
-    tsqueue_destroy(pool->queue);
+
+    for (size_t i = 0; i < pool->thread_count; ++i) {
+        tsqueue_enqueue(pool->queue, NULL);
+    }
 
     for (size_t i = 0; i < pool->thread_count; i++) {
         WaitForSingleObject(pool->threads[i], INFINITE);
         CloseHandle(pool->threads[i]);
     }
+
+    tsqueue_destroy(pool->queue);
+
     free(pool->threads);
     free(pool);
 }

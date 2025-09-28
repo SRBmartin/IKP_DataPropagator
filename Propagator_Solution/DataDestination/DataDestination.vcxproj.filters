@@ -18,12 +18,18 @@
     <ClInclude Include="data_destination.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dd_shutdown.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="data_destination.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dd_shutdown.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -77,11 +77,7 @@ static DWORD WINAPI listener_fn(LPVOID arg) {
 
     SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
     ctx->listen_sock = s;
-    struct sockaddr_in sa = {
-        .sin_family = AF_INET,
-        .sin_addr.s_addr = htonl(INADDR_ANY),
-        .sin_port = htons(ctx->port)
-    };
+    struct sockaddr_in sa = { .sin_family = AF_INET, .sin_addr.s_addr = htonl(INADDR_ANY), .sin_port = htons(ctx->port) };
     bind(s, (struct sockaddr*)&sa, sizeof(sa));
     listen(s, SOMAXCONN);
 
@@ -89,11 +85,17 @@ static DWORD WINAPI listener_fn(LPVOID arg) {
         SOCKET client = accept(s, NULL, NULL);
         if (client == INVALID_SOCKET) break;
 
-        Warning* w = deserialize_warning(client);
-        closesocket(client);
-        if (w) {
+        int opt = 1;
+        setsockopt(client, SOL_SOCKET, SO_KEEPALIVE, (const char*)&opt, sizeof(opt));
+
+        for (;;) {
+            Warning* w = deserialize_warning(client);
+            if (!w) break;
+
             tsqueue_enqueue(ctx->queue, w);
         }
+
+        closesocket(client);
     }
     return 0;
 }
@@ -117,13 +119,17 @@ DDContext* dd_create(const char* id, uint16_t port) {
     WSADATA wsa; WSAStartup(MAKEWORD(2, 2), &wsa);
 
     DDContext* ctx = malloc(sizeof(*ctx));
-    if (!ctx) return NULL;
+    if (!ctx) {
+        WSACleanup();
+        return NULL;
+    }
     ctx->id = _strdup(id);
     ctx->port = port;
     ctx->queue = tsqueue_create(0, (void(*)(void*))warning_destroy);
     if (!ctx->queue) {
         free(ctx->id);
         free(ctx);
+        WSACleanup();
         return NULL;
     }
 
@@ -131,9 +137,30 @@ DDContext* dd_create(const char* id, uint16_t port) {
         NULL, 0, listener_fn, ctx, 0, NULL
     );
 
+    if (!ctx->listener_thread) {
+        tsqueue_destroy(ctx->queue);
+        free(ctx->id);
+        free(ctx);
+        WSACleanup();
+        return NULL;
+    }
+
     ctx->processor_thread = CreateThread(
         NULL, 0, processor_fn, ctx, 0, NULL
     );
+
+    if (!ctx->processor_thread) {
+        if (ctx->listen_sock != INVALID_SOCKET) {
+            closesocket(ctx->listen_sock);
+        }
+        CloseHandle(ctx->listener_thread); 
+        tsqueue_destroy(ctx->queue);
+        free(ctx->id);
+        free(ctx);
+        WSACleanup();
+        return NULL;
+    }
+
     return ctx;
 }
 

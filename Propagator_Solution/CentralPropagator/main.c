@@ -1,29 +1,48 @@
+#ifdef _DEBUG
+#define _CRTDBG_MAP_ALLOC
 #define _WIN32_WINNT 0x0600
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
+#include <psapi.h>
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "Psapi.lib")
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <crtdbg.h>
+#endif
 
 #include "../Common/utils.h"
 #include "cp_context.h"
 #include "cp_listener.h"
 #include "cp_thread.h"
 #include "cp_dispatcher.h"
+#include "cp_shutdown.h"
+#include "../Common/propagator_connections.h"
 
 #define THREAD_POOL_SIZE 4
 #define NODES_PATH "../Common/nodes.csv"
 
+
 int main(int argc, char** argv) {
+#ifdef _DEBUG
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF |
+        _CRTDBG_LEAK_CHECK_DF |
+        _CRTDBG_CHECK_ALWAYS_DF);
+    _CrtMemState s1, s2, sDiff;
+    _CrtMemCheckpoint(&s1);
+#endif
+
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         fprintf(stderr, "Startup of WSA service has failed. Exiting...");
         return EXIT_FAILURE;
     }
+
+    connections_init();
 
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <node_id> <port>\n", argv[0]);
@@ -34,6 +53,27 @@ int main(int argc, char** argv) {
 
     const char* root_id = argv[1];
     uint16_t     port = (uint16_t)atoi(argv[2]);
+
+    FILE* logFile = NULL;
+
+#ifdef _DEBUG
+    logFile = setup_debug_memory_log(root_id);
+#endif
+    if (!logFile) {
+        printf("Log files failed to open!");
+    }
+#ifdef _WIN32
+    char eventName[128];
+    snprintf(eventName, sizeof(eventName), "Global\\CP_Exit_%s", root_id);
+    g_exitEvent = CreateEventA(NULL, TRUE, FALSE, eventName);
+
+    if (!g_exitEvent) {
+        fprintf(stderr, "Failed to create exit event.\n");
+        return EXIT_FAILURE;
+    }
+
+    SetConsoleCtrlHandler(console_handler, TRUE);
+#endif
 
     CPContext* ctx = cp_context_create(NODES_PATH, root_id);
     if (!ctx) {
@@ -56,11 +96,34 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+    fflush(logFile);
+    HANDLE hShutdownThread = CreateThread(NULL, 0, shutdown_waiter_fn, hListener, 0, NULL);
+
+    fflush(logFile);
     printf("[CP %s] listening on port %hu\n", root_id, port);
-    cp_join_listener_thread(hListener);
+
+    WaitForSingleObject(hShutdownThread, INFINITE);
+    CloseHandle(hShutdownThread);
+    CloseHandle(hListener);
 
     cp_dispatcher_shutdown(dispatcher);
     cp_context_destroy(ctx);
+    connections_cleanup();
     WSACleanup();
+
+    _CrtMemCheckpoint(&s2);
+    PROCESS_MEMORY_COUNTERS pmc;
+    GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+
+    print_stats_to_file(logFile, &s1, &s2, &sDiff, &pmc);
+
+    if (logFile) {
+        fclose(logFile);
+    }
+
+#ifdef _WIN32
+    if (g_exitEvent) CloseHandle(g_exitEvent);
+#endif
+
     return EXIT_SUCCESS;
 }

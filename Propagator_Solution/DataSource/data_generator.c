@@ -30,7 +30,9 @@ void* data_generator_thread(void* arg) {
 
     srand((unsigned)time(NULL));
 
-    while (WaitForSingleObject(a->stopEvent, 0) == WAIT_TIMEOUT) {
+    int counter = 0;
+
+    while (WaitForSingleObject(a->stopEvent, 0) == WAIT_TIMEOUT && counter<10000) {
         size_t j = rand() % dest_count;
         NodeInfo* n = dests[j];
 
@@ -42,15 +44,13 @@ void* data_generator_thread(void* arg) {
             n->id
         );
 
-        tsqueue_enqueue(a->queue, w);
-
         char* desc = warning_to_string(w);
         if (desc) {
-			printf("[DS]: Enqueued warning: %s\n", desc);
+            printf("[DS]: Enqueued warning %d: %s\n", ++counter, desc);
             free(desc);
         }
 
-        Sleep((rand() % 500) + 1000);
+        tsqueue_enqueue(a->queue, w);
     }
 
     tsqueue_enqueue(a->queue, NULL); // We send NULL sentinel to break the loop and let the cleanup do it's job
