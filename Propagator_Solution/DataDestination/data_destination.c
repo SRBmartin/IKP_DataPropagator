@@ -104,12 +104,13 @@ static DWORD WINAPI processor_fn(LPVOID arg) {
     DDContext* ctx = (DDContext*)arg;
     for (;;) {
         Warning* w = tsqueue_dequeue(ctx->queue);
-        if (!w) break;  // sentinel
+        if (!w) break;
         char* desc = warning_to_string(w);
         if (desc) {
             printf("[DD %s] %s\n", ctx->id, desc);
             free(desc);
         }
+        InterlockedIncrement(&ctx->warning_count); 
         warning_destroy(w);
     }
     return 0;
@@ -125,6 +126,8 @@ DDContext* dd_create(const char* id, uint16_t port) {
     }
     ctx->id = _strdup(id);
     ctx->port = port;
+    ctx->warning_count = 0;
+    InitializeCriticalSection(&ctx->count_mutex); 
     ctx->queue = tsqueue_create(0, (void(*)(void*))warning_destroy);
     if (!ctx->queue) {
         free(ctx->id);
@@ -153,7 +156,7 @@ DDContext* dd_create(const char* id, uint16_t port) {
         if (ctx->listen_sock != INVALID_SOCKET) {
             closesocket(ctx->listen_sock);
         }
-        CloseHandle(ctx->listener_thread); 
+        CloseHandle(ctx->listener_thread);
         tsqueue_destroy(ctx->queue);
         free(ctx->id);
         free(ctx);
@@ -177,6 +180,7 @@ void dd_destroy(DDContext* ctx) {
 
     tsqueue_destroy(ctx->queue);
     free(ctx->id);
+    DeleteCriticalSection(&ctx->count_mutex);
     WSACleanup();
     free(ctx);
 }

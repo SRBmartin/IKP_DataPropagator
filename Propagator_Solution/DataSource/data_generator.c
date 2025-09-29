@@ -6,6 +6,8 @@
 #include "data_generator.h"
 #include "../Common/warning.h"
 
+#define NUMBER_OF_WARNINGS 10000
+
 void* data_generator_thread(void* arg) {
     GeneratorArgs* a = (GeneratorArgs*)arg;
     size_t total = a->node_count;
@@ -32,7 +34,7 @@ void* data_generator_thread(void* arg) {
 
     int counter = 0;
 
-    while (WaitForSingleObject(a->stopEvent, 0) == WAIT_TIMEOUT && counter<10000) {
+    while (WaitForSingleObject(a->stopEvent, 0) == WAIT_TIMEOUT && counter<NUMBER_OF_WARNINGS) {
         size_t j = rand() % dest_count;
         NodeInfo* n = dests[j];
 
