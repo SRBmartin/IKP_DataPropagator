@@ -6,7 +6,6 @@
 #include <io.h> 
 #endif
 
-
 #include "data_destination.h"
 #include "../Common/utils.h"
 #include "../CentralPropagator/cp_shutdown.h"
@@ -36,7 +35,7 @@ int main(int argc, char** argv) {
     }
 
     const char* id = argv[1];
-    uint16_t    port = (uint16_t)atoi(argv[2]);
+    uint16_t port = (uint16_t)atoi(argv[2]);
 
     FILE* logFile = NULL;
 
@@ -77,6 +76,22 @@ int main(int argc, char** argv) {
 #else
     getchar();
 #endif
+
+    CreateDirectoryA("WarningCounter", NULL);
+
+    printf("[DD %s] Total warnings received: %ld\n", id, dd->warning_count);
+
+    char filename[256];
+    snprintf(filename, sizeof(filename), "WarningCounter/DataDestination_%s_warnings.txt", id);
+    FILE* warnFile = fopen(filename, "w");
+    if (warnFile) {
+        fprintf(warnFile, "%ld\n", dd->warning_count);
+        fclose(warnFile);
+        printf("[DD %s] Warning count written to %s\n", id, filename);
+    }
+    else {
+        printf("[DD %s] Failed to open %s for writing\n", id, filename);
+    }
 
     dd_destroy(dd);
 

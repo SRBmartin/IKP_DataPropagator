@@ -13,6 +13,8 @@ typedef struct {
     TSQueue* queue;
     HANDLE    listener_thread;
     HANDLE    processor_thread;
+    volatile long warning_count;
+    CRITICAL_SECTION count_mutex;
 } DDContext;
 
 DDContext* dd_create(const char* id, uint16_t port);
